@@ -63,15 +63,15 @@ Try {
 	##* VARIABLE DECLARATION
 	##*===============================================
 	## Variables: Application
-	[string]$appVendor = ''
-	[string]$appName = ''
-	[string]$appVersion = ''
-	[string]$appArch = ''
+	[string]$appVendor = 'Zoom Video Communications'
+	[string]$appName = 'Zoom Client for Meetings'
+	[string]$appVersion = '4.3.46333.0128'
+	[string]$appArch = 'x86'
 	[string]$appLang = 'EN'
 	[string]$appRevision = '01'
 	[string]$appScriptVersion = '3.7.0.1'
-	[string]$appScriptDate = '03/22/2018'
-	[string]$appScriptAuthor = '<author name>'
+	[string]$appScriptDate = '02/13/2019'
+	[string]$appScriptAuthor = 'Truong Nguyen'
 	##*===============================================
 	## Variables: Install Titles (Only set here to override defaults set by the toolkit)
 	[string]$installName = ''
@@ -119,13 +119,16 @@ Try {
 		[string]$installPhase = 'Pre-Installation'
 
 		## Show Welcome Message, close Internet Explorer if needed, verify there is enough disk space to complete the install, and persist the prompt
-		Show-InstallationWelcome -CloseApps 'iexplore' -CheckDiskSpace -PersistPrompt
+		Show-InstallationWelcome -CloseApps 'zoom' -CheckDiskSpace -PersistPrompt
 
 		## Show Progress Message (with the default message)
 		Show-InstallationProgress
 
 		## <Perform Pre-Installation tasks here>
-
+		## Uninstall any installed Zoom version
+		If ( Test-Path "$envProgramFilesX86\Zoom\bin") {
+				Execute-Process -Path "$dirSupportFiles\CleanZoom.exe" -PassThru
+		}
 
 		##*===============================================
 		##* INSTALLATION
@@ -139,7 +142,9 @@ Try {
 		}
 
 		## <Perform Installation tasks here>
-
+		## Install Zoom Client for Meeting
+		$exitCode = Execute-MSI -Action 'Install' -Path "$dirFiles\ZoomInstallerFull.msi" -Parameters "/quiet /qn /norestart" -WindowStyle "Hidden" -PassThru
+		If (($exitCode.ExitCode -ne "0") -and ($mainExitCode -ne "3010")) { $mainExitCode = $exitCode.ExitCode }
 
 		##*===============================================
 		##* POST-INSTALLATION
@@ -147,6 +152,8 @@ Try {
 		[string]$installPhase = 'Post-Installation'
 
 		## <Perform Post-Installation tasks here>
+		## Remove shortcut from Public Desktop
+		Remove-File -Path "$envCommonDesktop\Zoom.lnk"
 
 		## Display a message at the end of the install
 		If (-not $useDefaultMsi) {
@@ -161,7 +168,7 @@ Try {
 		[string]$installPhase = 'Pre-Uninstallation'
 
 		## Show Welcome Message, close Internet Explorer with a 60 second countdown before automatically closing
-		Show-InstallationWelcome -CloseApps 'iexplore' -CloseAppsCountdown 60
+		Show-InstallationWelcome -CloseApps 'zoom' -CloseAppsCountdown 60
 
 		## Show Progress Message (with the default message)
 		Show-InstallationProgress
@@ -180,8 +187,11 @@ Try {
 			Execute-MSI @ExecuteDefaultMSISplat
 		}
 
-		# <Perform Uninstallation tasks here>
-
+		## <Perform Uninstallation tasks here>
+		## Uninstall any installed Zoom version
+		If ( Test-Path "$envProgramFilesX86\Zoom\bin") {
+				Execute-Process -Path "$dirSupportFiles\CleanZoom.exe" -PassThru
+		}
 
 		##*===============================================
 		##* POST-UNINSTALLATION
