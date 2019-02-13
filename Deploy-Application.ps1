@@ -127,7 +127,7 @@ Try {
 		## <Perform Pre-Installation tasks here>
 		## Uninstall any installed Zoom version
 		If ( Test-Path "$envProgramFilesX86\Zoom\bin") {
-				Execute-Process -Path "$dirSupportFiles\CleanZoom.exe" -PassThru
+				Execute-Process -Path "$dirSupportFiles\CleanZoom.exe" -Parameters '/keepdata' -PassThru
 		}
 
 		##*===============================================
@@ -143,7 +143,7 @@ Try {
 
 		## <Perform Installation tasks here>
 		## Install Zoom Client for Meeting
-		$exitCode = Execute-MSI -Action 'Install' -Path "$dirFiles\ZoomInstallerFull.msi" -Parameters "/quiet /qn /norestart" -WindowStyle "Hidden" -PassThru
+		$exitCode = Execute-MSI -Action 'Install' -Path "$dirFiles\ZoomInstallerFull.msi" -Parameters '/quiet /qn /norestart' -WindowStyle "Hidden" -PassThru
 		If (($exitCode.ExitCode -ne "0") -and ($mainExitCode -ne "3010")) { $mainExitCode = $exitCode.ExitCode }
 
 		##*===============================================
@@ -190,7 +190,7 @@ Try {
 		## <Perform Uninstallation tasks here>
 		## Uninstall any installed Zoom version
 		If ( Test-Path "$envProgramFilesX86\Zoom\bin") {
-				Execute-Process -Path "$dirSupportFiles\CleanZoom.exe" -PassThru
+				Execute-Process -Path "$dirSupportFiles\CleanZoom.exe" -Parameters '/keepdata' -PassThru
 		}
 
 		##*===============================================
