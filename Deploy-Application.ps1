@@ -190,9 +190,12 @@ Try {
 
 		# <Perform Uninstallation tasks here>
 		## Uninstall any installed Zoom version
-		If ( Test-Path "$envProgramFilesX86\Zoom\bin") {
-			Execute-Process -Path "$dirSupportFiles\CleanZoom.exe" -Parameters '/keepdata' -PassThru
-		}
+		## If ( Test-Path "$envProgramFilesX86\Zoom\bin") {
+		##	Execute-Process -Path "$dirSupportFiles\CleanZoom.exe" -Parameters '/keepdata' -PassThru
+		## }
+		##Try silent uninstall using "Uninstall" MSI switch
+		$exitCode = Execute-MSI -Action 'uninstall' -Path "$dirFiles\ZoomInstallerFull.msi" -Parameters "/quiet /qn /norestart" -PassThru
+		If (($exitCode.ExitCode -ne "0") -and ($mainExitCode -ne "3010")) { $mainExitCode = $exitCode.ExitCode }
 
 		##*===============================================
 		##* POST-UNINSTALLATION
