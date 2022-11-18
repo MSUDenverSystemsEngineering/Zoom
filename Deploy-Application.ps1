@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 	This script performs the installation or uninstallation of an application(s).
 	# LICENSE #
@@ -37,11 +37,11 @@
 .LINK
 	http://psappdeploytoolkit.com
 #>
-[CmdletBinding()]
 
 ## Suppress PSScriptAnalyzer errors for not using declared variables during AppVeyor build
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification="Suppress AppVeyor errors on unused variables below")]
 
+[CmdletBinding()]
 Param (
 	[Parameter(Mandatory=$false)]
 	[ValidateSet('Install','Uninstall','Repair')]
@@ -87,8 +87,8 @@ Try {
 
 	## Variables: Script
 	[string]$deployAppScriptFriendlyName = 'Deploy Application'
-	[version]$deployAppScriptVersion = [version]'3.8.1'
-	[string]$deployAppScriptDate = '28/03/2020'
+	[version]$deployAppScriptVersion = [version]'3.8.4'
+	[string]$deployAppScriptDate = '26/01/2021'
 	[hashtable]$deployAppScriptParameters = $psBoundParameters
 
 	## Variables: Environment
@@ -120,18 +120,14 @@ Try {
 		##*===============================================
 		[string]$installPhase = 'Pre-Installation'
 
-		## Show Welcome Message, close Internet Explorer if needed, verify there is enough disk space to complete the install, and persist the prompt
+		## Show Welcome Message, close Internet Explorer if required, allow up to 3 deferrals, verify there is enough disk space to complete the install, and persist the prompt
 		Show-InstallationWelcome -CloseApps 'zoom,zwebview2agent' -CheckDiskSpace -PersistPrompt
 
 		## Show Progress Message (with the default message)
 		Show-InstallationProgress
 
 		## <Perform Pre-Installation tasks here>
-		## Uninstall any installed Zoom version
-		#If ( Test-Path "$envProgramFilesX86\Zoom\bin") {
-			Execute-Process -Path "$dirSupportFiles\CleanZoom.exe" -Parameters '/keepdata' -PassThru
-		#}
-
+		Execute-Process -Path "$dirSupportFiles\CleanZoom.exe" -Parameters '/keepdata' -PassThru
 
 		##*===============================================
 		##* INSTALLATION
@@ -159,10 +155,9 @@ Try {
 
 		## <Perform Post-Installation tasks here>
 
-		## Display a message at the end of the install
-		If (-not $useDefaultMsi) {
 
-		}
+		## Display a message at the end of the install
+		If (-not $useDefaultMsi) { Show-InstallationPrompt -Message "$appName $appVersion has been successfully installed." -ButtonRightText 'OK' -Icon Information -NoWait }
 	}
 	ElseIf ($deploymentType -ieq 'Uninstall')
 	{
@@ -192,13 +187,10 @@ Try {
 		}
 
 		# <Perform Uninstallation tasks here>
-		## Uninstall any installed Zoom version
-		## If ( Test-Path "$envProgramFilesX86\Zoom\bin") {
-		##	Execute-Process -Path "$dirSupportFiles\CleanZoom.exe" -Parameters '/keepdata' -PassThru
-		## }
 		##Try silent uninstall using "Uninstall" MSI switch
 		$exitCode = Execute-MSI -Action 'uninstall' -Path "$dirFiles\ZoomInstallerFull.msi" -Parameters "/quiet /qn /norestart" -PassThru
 		If (($exitCode.ExitCode -ne "0") -and ($mainExitCode -ne "3010")) { $mainExitCode = $exitCode.ExitCode }
+
 
 		##*===============================================
 		##* POST-UNINSTALLATION
@@ -206,6 +198,7 @@ Try {
 		[string]$installPhase = 'Post-Uninstallation'
 
 		## <Perform Post-Uninstallation tasks here>
+
 
 
 	}
@@ -260,8 +253,8 @@ Catch {
 # SIG # Begin signature block
 # MIIU9wYJKoZIhvcNAQcCoIIU6DCCFOQCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUObH+kk2aEPNiSIusfJMuwyfm
-# Q7GgghHXMIIFbzCCBFegAwIBAgIQSPyTtGBVlI02p8mKidaUFjANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUumRjTTA4Qjr9kK2TVC8T7ica
+# PdWgghHXMIIFbzCCBFegAwIBAgIQSPyTtGBVlI02p8mKidaUFjANBgkqhkiG9w0B
 # AQwFADB7MQswCQYDVQQGEwJHQjEbMBkGA1UECAwSR3JlYXRlciBNYW5jaGVzdGVy
 # MRAwDgYDVQQHDAdTYWxmb3JkMRowGAYDVQQKDBFDb21vZG8gQ0EgTGltaXRlZDEh
 # MB8GA1UEAwwYQUFBIENlcnRpZmljYXRlIFNlcnZpY2VzMB4XDTIxMDUyNTAwMDAw
@@ -361,13 +354,13 @@ Catch {
 # ZSBTaWduaW5nIENBIFIzNgIRAKVN33D73PFMVIK48rFyyjEwCQYFKw4DAhoFAKB4
 # MBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQB
 # gjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkE
-# MRYEFGsAXpzaCGCcuL5flvgQaRk5hJglMA0GCSqGSIb3DQEBAQUABIIBgDxqEv/L
-# EbkWmiIE8UYwH2/jWmLSXz5SaL3mj4333Bb8vhLu5gGIZZuLbwl3Dl/fcX8g+JlF
-# iIcsKrjp4UqvOvmDk+/kUcJGp/7e+h3SjDAvWq5eVlvBdzpmpVZF3rFPEagzcCgT
-# MB1JQTvdOOm2g7ei6e+r4BsRViyVLr8q2pEenhXOpd2TVONf0fr8bJVexhfGL117
-# MvlxJrkLhcb+cwKNZhc5wHM43ZxtHzihuU5v4uljbUWUE0oeBCMc4y+GGn/JocSk
-# 8w/ckgdzbYhj+niY5VMCAsNKAr/mGpHGNux7FtD3t72uCm+FqX2dF4XxsXeNTlBR
-# 027TN7Cl7Mkj8QyBiXXrFgcK5r/1XPOEKF/yA0K3YpMoj8RLo/CAoTgF3PTBgHW4
-# XjgDsmL0RD18wF/K0aJdeN24RQik6WXjTpgUxO2l9/MkO9h1AX9FOl1PZKveHR59
-# MlosqrAI2cHd0l/ifhsBp5nLrsBr8p3nEhbbqjESBFNNCiLWbyOZG5UmKg==
+# MRYEFMSmb2OI7c1sgsBWa5sAnpc5diG7MA0GCSqGSIb3DQEBAQUABIIBgGPVrjge
+# Iiljvme6vmkOUZE49lydjGvmDiuG6FFVLySZkY+b91t/e/Vpk8CbHMfbJJ+h2Edj
+# ZFeHOtwdMUfjhH0eJeUwYQA3DF9GjQPrKJ8gEQ0ZdkhAwNnPFqB40KQvdgkwTMbi
+# GxOHwd04enj2LlKx5BFlno/J5EgdpYiOzfaBy4VLQ8MjYF2yegpTRWIIfltbLAFU
+# mjsNE1Kr/GGyVsV4na9Exn7/fX0IKwtfcadCiD/uR4UPqrb3fin1ED9ELF4ayKNN
+# FWiRbLTDePJwgTC5P2FMJOhWsoQXJd1B78xy/yz6Xv338e96l4tuU/sQk2Oyo7Ie
+# GvEYIv+qinCuql3hz3tstCOvvO+gct46yKVxesmBRnJYtl+OK7wiDEXWcz4W9Qgs
+# nBC9RFAbqSxWvydS6GYPHRce9+P7zh34qhW48aj9dB+tXkKag/vGP9dnu6shq+Le
+# cU4Q4B0dbwhc3dbKblKE7pX0aGQI/L9rl4VWMTFQPhT1s3zO6wY0/PQ+Ag==
 # SIG # End signature block
